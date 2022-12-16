@@ -44,13 +44,14 @@ def goToCalendar() :
       driver.close()
 
 def isClass() :
-  # try:
+  try:
     classes = driver.find_element(By.CLASS_NAME, 'reservation-TOULOUSE')
     if classes:
       print("Y a cours")
       checkClass()
-  # except:
-  #   print("Y a pas cours")
+  except:
+    print("Y a pas cours")
+    result = "Pas de cours :)"
 
 def checkClass() :
   classesCount = driver.find_elements(By.CLASS_NAME, 'reservation-TOULOUSE')
@@ -64,7 +65,7 @@ def checkClass() :
     time.sleep(3)
 
   result.pop(0)
-  print(result)
+  return result
 
 
 def start() :
@@ -92,5 +93,4 @@ def start() :
   connexion()
   goToCalendar()
 
-
-start()
+  return result
