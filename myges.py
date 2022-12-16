@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 user = os.getenv("IDENTIFIANT")
 password = os.getenv("PASSWORD")
+result = []
 
 def openMyGes() :
   print('Opening myges website')
@@ -32,29 +33,38 @@ def connexion() :
   driver.find_element(By.CSS_SELECTOR, 'input.input_submit').click()
 
 def goToCalendar() :
-  time.sleep(5)
+  time.sleep(2)
   driver.get("https://myges.fr/student/planning-calendar")
   delay = 10 # seconds
   try:
       myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'calendar')))
       isClass()
-
   except TimeoutException:
       print("Loading took too much time!")
       driver.close()
 
 def isClass() :
-  try:
-    classes = driver.find_element(By.CSS_SELECTOR, '.reservation-TOULOUSE')
-
+  # try:
+    classes = driver.find_element(By.CLASS_NAME, 'reservation-TOULOUSE')
     if classes:
       print("Y a cours")
       checkClass()
-
-  except:
-    print("Y a pas cours")
+  # except:
+  #   print("Y a pas cours")
 
 def checkClass() :
+  classesCount = driver.find_elements(By.CLASS_NAME, 'reservation-TOULOUSE')
+  lastElement = classesCount[-1]
+  classesCount.append(lastElement)
+
+  for i in classesCount :
+    i.click()
+    element = driver.find_element(By.ID, "dlg1").text
+    result.append(element)
+    time.sleep(3)
+
+  result.pop(0)
+  print(result)
 
 
 def start() :
@@ -62,8 +72,8 @@ def start() :
 
   # Options to run without interface
 
-  # chrome_options.add_argument("--no-sandbox")
-  # chrome_options.add_argument("--headless")
+  chrome_options.add_argument("--no-sandbox")
+  chrome_options.add_argument("--headless")
 
   # Bypass the anti bot
 
@@ -82,4 +92,5 @@ def start() :
   connexion()
   goToCalendar()
 
-  
+
+start()
