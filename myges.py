@@ -1,6 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 import os
 import time
@@ -27,6 +31,31 @@ def connexion() :
   time.sleep(1)
   driver.find_element(By.CSS_SELECTOR, 'input.input_submit').click()
 
+def goToCalendar() :
+  time.sleep(5)
+  driver.get("https://myges.fr/student/planning-calendar")
+  delay = 10 # seconds
+  try:
+      myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'calendar')))
+      isClass()
+
+  except TimeoutException:
+      print("Loading took too much time!")
+      driver.close()
+
+def isClass() :
+  try:
+    classes = driver.find_element(By.CSS_SELECTOR, '.reservation-TOULOUSE')
+
+    if classes:
+      print("Y a cours")
+      checkClass()
+
+  except:
+    print("Y a pas cours")
+
+def checkClass() :
+
 
 def start() :
   chrome_options = Options()
@@ -51,3 +80,6 @@ def start() :
 
   openMyGes()
   connexion()
+  goToCalendar()
+
+  
