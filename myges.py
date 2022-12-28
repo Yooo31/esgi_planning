@@ -14,15 +14,23 @@ load_dotenv()
 user = os.getenv("IDENTIFIANT")
 password = os.getenv("PASSWORD")
 result = []
+state = True
+error = ["Erreur du site internet", "Réessayer plus tard", "! planning"]
 
 def openMyGes() :
   print('Opening myges website')
-
   driver.get("https://myges.fr/student/planning-calendar")
-  time.sleep(1)
+  time.sleep(5)
 
 def loginForm(inputType, value) :
-  driver.find_element(By.ID, inputType).send_keys(os.getenv(value))
+  try :
+    driver.find_element(By.ID, inputType).send_keys(os.getenv(value))
+  else :
+    state = False
+    print(state)
+    driver.close()
+
+  return result
 
 def connexion() :
   print('Connect me')
@@ -37,11 +45,11 @@ def goToCalendar() :
   driver.get("https://myges.fr/student/planning-calendar")
   delay = 10 # seconds
   try:
-      myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'calendar')))
-      isClass()
+    myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'calendar')))
+    isClass()
   except TimeoutException:
-      print("Loading took too much time!")
-      driver.close()
+    state = False
+    driver.close()
 
 def isClass() :
   try:
@@ -51,7 +59,9 @@ def isClass() :
       checkClass()
   except:
     print("Y a pas cours")
-    result = "Pas de cours :)"
+    result.append("Pas de cours :)")
+
+  return result
 
 def checkClass() :
   classesCount = driver.find_elements(By.CLASS_NAME, 'reservation-TOULOUSE')
@@ -69,12 +79,13 @@ def checkClass() :
 
 
 def start() :
+  error = ["Erreur du site internet", "Réessayer plus tard", "! planning"]
   chrome_options = Options()
 
   # Options to run without interface
 
-  chrome_options.add_argument("--no-sandbox")
-  chrome_options.add_argument("--headless")
+  # chrome_options.add_argument("--no-sandbox")
+  # chrome_options.add_argument("--headless")
 
   # Bypass the anti bot
 
@@ -90,7 +101,14 @@ def start() :
   # Launch the process
 
   openMyGes()
-  connexion()
-  goToCalendar()
+  not state and connexion()
+  not state and goToCalendar()
 
-  return result
+  print(state)
+
+  if state :
+    print(result)
+    return result
+  else :
+    print("eee :" + error)
+    return error

@@ -27,24 +27,25 @@ async def task_loop():
   print('Check planning')
   channel = bot.get_channel(1053333090908520541)
   result = start()
-  await channel.send(separator)
+  print(result)
+  # await channel.send(separator)
   for element in result :
     await channel.send(element)
-  await channel.send(separator)
+  # await channel.send(separator)
   print('End !')
 
-@bot.command(name='planning')
-async def lunch_royaltiz(ctx):
-  result = start()
-  await ctx.send(separator)
-  for element in result :
-    await ctx.send(element)
-  await ctx.send(separator)
-  print('End !')
+# @bot.command(name='planning')
+# async def lunch_royaltiz(ctx):
+#   result = start()
+#   await ctx.send(separator)
+#   for element in result :
+#     await ctx.send(element)
+#   await ctx.send(separator)
+#   print('End !')
 
-@bot.command(name='clear')
-async def clear(ctx, amount=10):
-  await ctx.channel.purge(amount)
+# @bot.command(name='clear')
+# async def clear(ctx, amount=10):
+#   await ctx.channel.purge(amount)
 
 
 
