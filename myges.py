@@ -125,4 +125,4 @@ def start() :
   response = doRequest(setOfDatesConverted)
   message = extractData(response) if response.status_code == 200 else errorMessage(response)
 
-  print(message)
+  return message
