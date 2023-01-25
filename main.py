@@ -11,7 +11,6 @@ load_dotenv()
 
 intents = discord.Intents.default()
 intents.message_content = True
-separator = "###########"
 
 bot = commands.Bot(command_prefix="!", intents=intents)
 global time
@@ -26,20 +25,14 @@ async def on_ready():
 async def task_loop():
   print('Check planning')
   channel = bot.get_channel(1053333090908520541)
-  result = start()
-  await channel.send(separator)
-  for element in result :
-    await channel.send(element)
-  await channel.send(separator)
+  message = start()
+  await channel.send(message)
   print('End !')
 
 @bot.command(name='planning')
-async def lunch_royaltiz(ctx):
-  result = start()
-  await ctx.send(separator)
-  for element in result :
-    await ctx.send(element)
-  await ctx.send(separator)
+async def getPlanning(ctx):
+  message = start()
+  await ctx.send(message)
   print('End !')
 
 @bot.command(name='clear')

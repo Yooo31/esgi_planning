@@ -1,96 +1,129 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import TimeoutException
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
-import os
+from datetime import date, timedelta, datetime
 import time
-from dotenv import load_dotenv
+import requests
+import json
 
-load_dotenv()
-user = os.getenv("IDENTIFIANT")
-password = os.getenv("PASSWORD")
-result = []
+def getDates() :
+  today = date.today()
+  dateResult = today
+  weekday = today.weekday()
 
-def openMyGes() :
-  print('Opening myges website')
+  while(weekday != 0) :
+    dateResult -= timedelta(days=1)
+    weekday = dateResult.weekday()
 
-  driver.get("https://myges.fr/student/planning-calendar")
-  time.sleep(1)
+  return [dateResult, dateResult + timedelta(days=7)]
 
-def loginForm(inputType, value) :
-  driver.find_element(By.ID, inputType).send_keys(os.getenv(value))
+def convertDates(dates) :
+  timestamp_list = [int(time.mktime(d.timetuple())) * 1000 for d in dates]
 
-def connexion() :
-  print('Connect me')
-  loginForm('username', 'IDENTIFIANT')
-  time.sleep(1)
-  loginForm('password', 'PASSWORD')
-  time.sleep(1)
-  driver.find_element(By.CSS_SELECTOR, 'input.input_submit').click()
+  return timestamp_list
 
-def goToCalendar() :
-  time.sleep(2)
-  driver.get("https://myges.fr/student/planning-calendar")
-  delay = 10 # seconds
-  try:
-      myElem = WebDriverWait(driver, delay).until(EC.presence_of_element_located((By.ID, 'calendar')))
-      isClass()
-  except TimeoutException:
-      print("Loading took too much time!")
-      driver.close()
+def doRequest(setOfDatesConverted) :
 
-def isClass() :
-  try:
-    classes = driver.find_element(By.CLASS_NAME, 'reservation-TOULOUSE')
-    if classes:
-      print("Y a cours")
-      checkClass()
-  except:
-    print("Y a pas cours")
-    result = "Pas de cours :)"
+  url = "https://myges.fr/student/planning-calendar"
+  headers = {
+      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "accept": "application/xml, text/xml, */*; q=0.01",
+      "accept-encoding": "gzip, deflate, br",
+      "accept-language": "fr-FR,fr;q=0.6",
+      "referer": "https://myges.fr/student/planning-calendar",
+      "origin": "https://myges.fr",
+      "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+      "x-requested-with": "XMLHttpRequest",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-gpc": "1",
+      "sec-ch-ua": '"Chromium";v="106", "Brave Browser";v="106", "Not;A=Brand";v="99"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "Linux",
+      "faces-request": "partial/ajax"
+  }
+  payload = {
+    "javax.faces.partial.ajax": "true",
+    "javax.faces.source": "calendar:myschedule",
+    "javax.faces.partial.execute": "calendar:myschedule",
+    "javax.faces.partial.render": "calendar:myschedule",
+    "calendar:myschedule": "calendar:myschedule",
+    "calendar:myschedule_start": setOfDatesConverted[0],
+    "calendar:myschedule_end": setOfDatesConverted[1],
+    "calendar": "calendar",
+    "calendar:myschedule_view": "agendaWeek",
+    "javax.faces.ViewState": "-4496979502816867172:5112411270531609037"
+  }
+  cookies = {
+    "JSESSIONID": "7535A052388A9941FE4EF371FA56C6F7"
+  }
 
-def checkClass() :
-  classesCount = driver.find_elements(By.CLASS_NAME, 'reservation-TOULOUSE')
-  lastElement = classesCount[-1]
-  classesCount.append(lastElement)
+  response = requests.post(url, headers=headers, data=payload, cookies=cookies)
 
-  for i in classesCount :
-    i.click()
-    element = driver.find_element(By.ID, "dlg1").text
-    result.append(element)
-    time.sleep(3)
+  return response
 
-  result.pop(0)
-  return result
+def convertData(allEvents):
+  parsedEvents = []
 
+  for event in allEvents :
+    title, room = event[0].split('\n')
+
+    date = event[1][:10]
+    startTime = event[1][11:16]
+
+    endTime = event[2][11:16]
+
+    date = date[8:]+"/"+date[5:7]+"/"+date[:4]
+
+    startTime = startTime[:2] + "h" + startTime[3:]
+    endTime = endTime[:2] + "h" + endTime[3:]
+
+    newData = [title, room, date, startTime + " - " + endTime]
+    parsedEvents.append(newData)
+
+  return parsedEvents
+
+def redactMessage(parsedEvents) :
+  message = ""
+
+  for event in parsedEvents :
+    message += "\n\n📆 " + event[2] + "\n📚 " + event[0] + "\n🏫 " + event[1] + "\n🕓 " + event[3]
+
+  return message
+
+def extractData(response) :
+  start = response.text.index("CDATA[") + 6
+  end = response.text.index("]]></update>")
+  json_string = response.text[start:end]
+
+  data = json.loads(json_string)
+  events = data['events']
+
+  allEvents = []
+
+  for event in events:
+    newEvent = []
+
+    newEvent.append(event['title'])
+    newEvent.append(event['start'])
+    newEvent.append(event['end'])
+
+    allEvents.append(newEvent)
+
+  allEvents.sort(key=lambda x: x[1])
+
+  parsedEvents = convertData(allEvents)
+  message = redactMessage(parsedEvents)
+
+  return message
+
+def errorMessage(response) :
+  message = "Une erreur provenant du site est survenue\n\nCODE :" +response.status_code + '\n\nVeuillez rééssayer plus tars avec la commande "!planning"'
 
 def start() :
-  chrome_options = Options()
+  setOfDates = getDates()
+  setOfDatesConverted = convertDates(setOfDates)
 
-  # Options to run without interface
+  response = doRequest(setOfDatesConverted)
+  message = extractData(response) if response.status_code == 200 else errorMessage(response)
 
-  chrome_options.add_argument("--no-sandbox")
-  chrome_options.add_argument("--headless")
+  print(message)
 
-  # Bypass the anti bot
-
-  chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-  chrome_options.add_experimental_option('useAutomationExtension', False)
-  chrome_options.add_argument("--disable-blink-features=AutomationControlled")
-
-  # Create the driver
-
-  global driver
-  driver = webdriver.Chrome(executable_path="./chromedriver", options=chrome_options)
-
-  # Launch the process
-
-  openMyGes()
-  connexion()
-  goToCalendar()
-
-  return result
