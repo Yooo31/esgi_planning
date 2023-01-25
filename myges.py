@@ -126,4 +126,3 @@ def start() :
   message = extractData(response) if response.status_code == 200 else errorMessage(response)
 
   print(message)
-
