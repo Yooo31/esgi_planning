@@ -50,10 +50,10 @@ def doRequest(setOfDatesConverted) :
     "calendar:myschedule_end": setOfDatesConverted[1],
     "calendar": "calendar",
     "calendar:myschedule_view": "agendaWeek",
-    "javax.faces.ViewState": "-4496979502816867172:5112411270531609037"
+    "javax.faces.ViewState": "-3779755639599050666:-6551898697173090737"
   }
   cookies = {
-    "JSESSIONID": "7535A052388A9941FE4EF371FA56C6F7"
+    "JSESSIONID": "351C393293390A613C0A812AA6779906"
   }
 
   response = requests.post(url, headers=headers, data=payload, cookies=cookies)
@@ -90,6 +90,7 @@ def redactMessage(parsedEvents) :
   return message
 
 def extractData(response) :
+  print(response.status_code)
   start = response.text.index("CDATA[") + 6
   end = response.text.index("]]></update>")
   json_string = response.text[start:end]
