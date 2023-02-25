@@ -52,7 +52,7 @@ def doRequest(setOfDatesConverted) :
     "javax.faces.ViewState": "5924194908406122877:1760918383373028995"
   }
   cookies = {
-    "JSESSIONID": "2F474BCD53CF04BA2D34595EE85D154B"
+    "JSESSIONID": "2F474BCD53CF04BA2D34595EE85D154"
   }
 
   response = requests.post(url, headers=headers, data=payload, cookies=cookies)
@@ -64,4 +64,4 @@ def start():
   setOfDatesConverted = convertDates(setOfDates)
   response = doRequest(setOfDatesConverted)
 
-  return response
+  return response.text

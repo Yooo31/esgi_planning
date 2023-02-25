@@ -61,6 +61,6 @@ def errorMessage(response) :
   return message
 
 def start(response) :
-  message = extractData(response.text)
+  message = extractData(response)
 
   return message

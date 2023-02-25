@@ -18,13 +18,16 @@ request = Request.start()
 
 async def sessionValidity(channel) :
   status = Verification.getSessionValidity(request)
+  print("status = " + str(status))
 
   while status == -1 :
-    await channel.send("❌ Erreur de session")
-    await channel.send("⏳ Regénération de la session")
+    print('await channel.send("❌ Erreur de session")')
+    print('await channel.send("⏳ Regénération de la session")')
     status = Verification.getSessionValidity(request)
+    
+    break
 
-  await channel.send("✅ Session valide")
+  print('await channel.send("✅ Session valide")')
 
 @bot.event
 async def on_ready():
@@ -34,16 +37,16 @@ async def on_ready():
 @tasks.loop(hours=168)
 async def task_loop():
   channel = bot.get_channel(1053333090908520541)
-  sessionValidity(channel)
+  await sessionValidity(channel)
   print('Check planning')
-  message = MyGes.start()
+  message = MyGes.start(request)
   print(message)
   # await channel.send(message)
   print('End !')
 
 @bot.command(name='planning')
 async def getPlanning(ctx):
-  message = MyGes.start()
+  message = MyGes.start(request)
   await ctx.send(message)
   print('End !')
 
