@@ -1,64 +1,4 @@
-from datetime import date, timedelta, datetime
-import time
-import requests
 import json
-
-def getDates() :
-  today = date.today()
-  dateResult = today
-  weekday = today.weekday()
-
-  while(weekday != 0) :
-    dateResult -= timedelta(days=1)
-    weekday = dateResult.weekday()
-
-  return [dateResult, dateResult + timedelta(days=7)]
-
-def convertDates(dates) :
-  timestamp_list = [int(time.mktime(d.timetuple())) * 1000 for d in dates]
-
-  return timestamp_list
-
-def doRequest(setOfDatesConverted) :
-
-  url = "https://myges.fr/student/planning-calendar"
-  headers = {
-      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
-      "accept": "application/xml, text/xml, */*; q=0.01",
-      "accept-encoding": "gzip, deflate, br",
-      "accept-language": "fr-FR,fr;q=0.6",
-      "referer": "https://myges.fr/student/planning-calendar",
-      "origin": "https://myges.fr",
-      "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
-      "x-requested-with": "XMLHttpRequest",
-      "sec-fetch-dest": "empty",
-      "sec-fetch-site": "same-origin",
-      "sec-fetch-mode": "cors",
-      "sec-gpc": "1",
-      "sec-ch-ua": '"Chromium";v="106", "Brave Browser";v="106", "Not;A=Brand";v="99"',
-      "sec-ch-ua-mobile": "?0",
-      "sec-ch-ua-platform": "Linux",
-      "faces-request": "partial/ajax"
-  }
-  payload = {
-    "javax.faces.partial.ajax": "true",
-    "javax.faces.source": "calendar:myschedule",
-    "javax.faces.partial.execute": "calendar:myschedule",
-    "javax.faces.partial.render": "calendar:myschedule",
-    "calendar:myschedule": "calendar:myschedule",
-    "calendar:myschedule_start": setOfDatesConverted[0],
-    "calendar:myschedule_end": setOfDatesConverted[1],
-    "calendar": "calendar",
-    "calendar:myschedule_view": "agendaWeek",
-    "javax.faces.ViewState": "-3779755639599050666:-6551898697173090737"
-  }
-  cookies = {
-    "JSESSIONID": "351C393293390A613C0A812AA6779906"
-  }
-
-  response = requests.post(url, headers=headers, data=payload, cookies=cookies)
-
-  return response
 
 def convertData(allEvents):
   parsedEvents = []
@@ -90,12 +30,11 @@ def redactMessage(parsedEvents) :
   return message
 
 def extractData(response) :
-  print(response.status_code)
-  start = response.text.index("CDATA[") + 6
-  end = response.text.index("]]></update>")
-  json_string = response.text[start:end]
+  start = response.find('<update id="calendar:myschedule">')
+  end = response.find('</update>', start) + len('</update>')
+  extracted = response[start:end]
 
-  data = json.loads(json_string)
+  data = json.loads(extracted)
   events = data['events']
 
   allEvents = []
@@ -119,11 +58,9 @@ def extractData(response) :
 def errorMessage(response) :
   message = "Une erreur provenant du site est survenue\n\nCODE :" +response.status_code + '\n\nVeuillez rééssayer plus tars avec la commande "!planning"'
 
-def start() :
-  setOfDates = getDates()
-  setOfDatesConverted = convertDates(setOfDates)
+  return message
 
-  response = doRequest(setOfDatesConverted)
-  message = extractData(response) if response.status_code == 200 else errorMessage(response)
+def start(response) :
+  message = extractData(response.text)
 
   return message
