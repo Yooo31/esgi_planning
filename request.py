@@ -1,6 +1,17 @@
 from datetime import date, timedelta
 import time
 import requests
+import json
+
+def getSession():
+  with open('session.json') as f:
+    data = json.load(f)
+
+  payload = data['payload']
+  cookies = data['cookies']
+
+  print(payload, cookies)
+  return [payload, cookies]
 
 def getDates() :
   today = date.today()
@@ -19,7 +30,7 @@ def convertDates(dates) :
   return timestamp_list
 
 def doRequest(setOfDatesConverted) :
-
+  session = getSession()
   url = "https://myges.fr/student/planning-calendar"
   headers = {
       "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -49,10 +60,10 @@ def doRequest(setOfDatesConverted) :
     "calendar:myschedule_end": setOfDatesConverted[1],
     "calendar": "calendar",
     "calendar:myschedule_view": "agendaWeek",
-    "javax.faces.ViewState": "5924194908406122877:1760918383373028995"
+    "javax.faces.ViewState": session[0]
   }
   cookies = {
-    "JSESSIONID": "2F474BCD53CF04BA2D34595EE85D154"
+    "JSESSIONID": session[1]
   }
 
   response = requests.post(url, headers=headers, data=payload, cookies=cookies)
