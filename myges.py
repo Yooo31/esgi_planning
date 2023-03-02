@@ -1,3 +1,4 @@
+import datetime
 import json
 
 def convertData(allEvents):
@@ -21,10 +22,40 @@ def convertData(allEvents):
 
   return parsedEvents
 
+def concatenatePlanning(events) :
+  finalEvents = []
+  while len(events) != 1 :
+    nameMatch = events[0][0] == events[1][0]
+    classMatch = events[0][1] == events[1][1]
+    dateMatch = events[0][2] == events[1][2]
+    firstSchedule = events[0][3].split(" - ")
+    secondSchedule = events[1][3].split(" - ")
+
+    firstMinutes = datetime.datetime.strptime(firstSchedule[1], "%Hh%M").time()
+    firstMinutesMore15 = datetime.datetime.combine(datetime.date.today(), firstMinutes) + datetime.timedelta(minutes=15)
+    isScheduleMatch15 =  firstMinutesMore15.strftime("%Hh%M") == secondSchedule[0]
+    firstMinutesMore60 = datetime.datetime.combine(datetime.date.today(), firstMinutes) + datetime.timedelta(minutes=60)
+    isScheduleMatch60 =  firstMinutesMore60.strftime("%Hh%M") == secondSchedule[0]
+
+    if nameMatch and classMatch and dateMatch :
+      if isScheduleMatch15 or isScheduleMatch60 :
+        finalSchedule = firstSchedule[0] + " - " + secondSchedule[1]
+        events[0][3] = finalSchedule
+        del events[1]
+    else :
+      finalEvents.append(events[0])
+      del events[0]
+
+  finalEvents.append(events[0])
+  del events[0]
+
+  return finalEvents
+
 def redactMessage(parsedEvents) :
   message = ""
+  concatenatedEvents = concatenatePlanning(parsedEvents)
 
-  for event in parsedEvents :
+  for event in concatenatedEvents :
     message += "\n\n📆 " + event[2] + "\n📚 " + event[0] + "\n🏫 " + event[1] + "\n🕓 " + event[3]
 
   return message
