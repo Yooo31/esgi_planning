@@ -7,6 +7,7 @@ from discord.ext import tasks, commands
 import request as Request
 import verification as Verification
 import myges as MyGes
+import reload_session as ReloadSession
 
 load_dotenv()
 
@@ -23,8 +24,9 @@ async def sessionValidity(channel) :
   while status == -1 :
     print('await channel.send("❌ Erreur de session")')
     print('await channel.send("⏳ Regénération de la session")')
+    ReloadSession.start()
     status = Verification.getSessionValidity(request)
-    
+
     break
 
   print('await channel.send("✅ Session valide")')

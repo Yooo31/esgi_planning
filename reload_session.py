@@ -99,6 +99,3 @@ def start() :
   getSessionValue()
 
   return result
-
-start()
-
