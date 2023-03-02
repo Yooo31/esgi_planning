@@ -30,9 +30,9 @@ def redactMessage(parsedEvents) :
   return message
 
 def extractData(response) :
-  start = response.find('<update id="calendar:myschedule">')
-  end = response.find('</update>', start) + len('</update>')
-  extracted = response[start:end]
+  start = response.find('<update id="calendar:myschedule"><![CDATA[')
+  end = response.find(']]></update>', start)
+  extracted = response[start:end].replace('<update id="calendar:myschedule"><![CDATA[', '')
 
   data = json.loads(extracted)
   events = data['events']

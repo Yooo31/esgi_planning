@@ -10,7 +10,6 @@ def getSession():
   payload = data['payload']
   cookies = data['cookies']
 
-  print(payload, cookies)
   return [payload, cookies]
 
 def getDates() :

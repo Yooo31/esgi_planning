@@ -15,9 +15,14 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
-request = Request.start()
+
+def doRequest() :
+  request = Request.start()
+
+  return request
 
 async def sessionValidity(channel) :
+  request = doRequest()
   status = Verification.getSessionValidity(request)
   print("status = " + str(status))
 
@@ -25,9 +30,8 @@ async def sessionValidity(channel) :
     print('await channel.send("❌ Erreur de session")')
     print('await channel.send("⏳ Regénération de la session")')
     ReloadSession.start()
+    request = doRequest()
     status = Verification.getSessionValidity(request)
-
-    break
 
   print('await channel.send("✅ Session valide")')
 
@@ -41,6 +45,7 @@ async def task_loop():
   channel = bot.get_channel(1053333090908520541)
   await sessionValidity(channel)
   print('Check planning')
+  request = doRequest()
   message = MyGes.start(request)
   print(message)
   # await channel.send(message)
@@ -48,6 +53,7 @@ async def task_loop():
 
 @bot.command(name='planning')
 async def getPlanning(ctx):
+  request = doRequest()
   message = MyGes.start(request)
   await ctx.send(message)
   print('End !')
@@ -55,7 +61,5 @@ async def getPlanning(ctx):
 @bot.command(name='clear')
 async def clear(ctx, amount=10):
   await ctx.channel.purge(amount)
-
-
 
 bot.run(os.getenv("TOKEN"))
