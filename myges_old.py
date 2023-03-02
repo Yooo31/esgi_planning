@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 
+import json
 import os
 import time
 from dotenv import load_dotenv
@@ -34,25 +35,52 @@ def connexion() :
   time.sleep(1)
   driver.find_element(By.CSS_SELECTOR, 'input.input_submit').click()
 
-def goToCalendar() :
+def findJSessionId(cookies) :
+  jsessionid_cookie = None
+  for cookie in cookies:
+    if cookie['name'] == 'JSESSIONID':
+      jsessionid_cookie = cookie
+      break
+
+  if jsessionid_cookie is not None:
+    jsessionid_value = jsessionid_cookie['value']
+  else:
+    print("Le cookie JSESSIONID n'a pas été trouvé.")
+    jsessionid_value = None
+
+  return jsessionid_value
+
+def changeJsonFile(cookie, payload) :
+  with open('session.json', 'r') as f:
+    data = json.load(f)
+
+  data['payload'] = payload
+  data['cookies'] = cookie
+
+  with open('session.json', 'w') as f:
+    json.dump(data, f)
+
+
+def getSessionValue() :
   time.sleep(2)
   driver.get("https://myges.fr/student/planning-calendar")
 
   time.sleep(10)
-  # logs = driver.get_log("performance")
-  # print(logs)
-  log_types = driver.execute_script("return console.getTypes();")
-  print(log_types)
 
+  cookies = driver.get_cookies()
+  jsessionid = findJSessionId(cookies)
 
+  viewstate_element = driver.find_element("name", "javax.faces.ViewState")
+  viewstate_value = viewstate_element.get_attribute("value")
 
+  changeJsonFile(jsessionid, viewstate_value)
 
 def start() :
   chrome_options = Options()
 
   # Options to run without interface
-  # chrome_options.add_argument("--no-sandbox")
-  # chrome_options.add_argument("--headless")
+  chrome_options.add_argument("--no-sandbox")
+  chrome_options.add_argument("--headless")
 
   # Bypass the anti bot
   chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -68,7 +96,7 @@ def start() :
 
   openMyGes()
   connexion()
-  goToCalendar()
+  getSessionValue()
 
   return result
 
