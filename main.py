@@ -45,7 +45,7 @@ async def task_loop():
   channel = bot.get_channel(1053333090908520541)
   await sessionValidity(channel)
   print('Check planning')
-  request = doRequest()
+  request = doRequest(0)
   message = MyGes.start(request)
   await channel.send(message)
   print('End !')
@@ -68,5 +68,9 @@ async def getPlanning(ctx, *args) :
 async def clear(ctx):
   print("Clear all msg")
   await ctx.channel.purge()
+
+@bot.command(name='insulte')
+async def clear(ctx):
+  await ctx.send("@here ALLEZ VOUS FAIRE FOUTRE")
 
 bot.run(os.getenv("TOKEN"))
