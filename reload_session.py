@@ -12,7 +12,6 @@ import os
 import time
 from dotenv import load_dotenv
 
-
 load_dotenv()
 user = os.getenv("IDENTIFIANT")
 password = os.getenv("PASSWORD")
@@ -56,10 +55,10 @@ def changeJsonFile(cookie, payload) :
 
   data['payload'] = payload
   data['cookies'] = cookie
+  data['actual_week'] = 0
 
   with open('session.json', 'w') as f:
     json.dump(data, f)
-
 
 def getSessionValue() :
   time.sleep(2)
