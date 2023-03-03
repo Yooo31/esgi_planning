@@ -42,12 +42,12 @@ async def on_ready():
 
 @tasks.loop(hours=168)
 async def task_loop():
-  # channel = bot.get_channel(1053333090908520541)
-  # await sessionValidity(channel)
-  # print('Check planning')
-  # request = doRequest()
-  # message = MyGes.start(request)
-  # await channel.send(message)
+  channel = bot.get_channel(1053333090908520541)
+  await sessionValidity(channel)
+  print('Check planning')
+  request = doRequest()
+  message = MyGes.start(request)
+  await channel.send(message)
   print('End !')
 
 @bot.command(name='planning')
