@@ -1,3 +1,5 @@
+import request as Request
+
 import datetime
 import json
 
@@ -17,7 +19,7 @@ def convertData(allEvents):
     startTime = startTime[:2] + "h" + startTime[3:]
     endTime = endTime[:2] + "h" + endTime[3:]
 
-    newData = [title, room, date, startTime + " - " + endTime]
+    newData = [title, room, date, startTime + " - " + endTime, event[3]]
     parsedEvents.append(newData)
 
   return parsedEvents
@@ -56,7 +58,12 @@ def redactMessage(parsedEvents) :
   concatenatedEvents = concatenatePlanning(parsedEvents)
 
   for event in concatenatedEvents :
-    message += "\n\n📆 " + event[2] + "\n📚 " + event[0] + "\n🏫 " + event[1] + "\n🕓 " + event[3]
+    courseId = event[4]
+    detailedCourse = Request.getDetailedValue(courseId)
+
+    event[0] = detailedCourse[0]
+    teacher = detailedCourse[1]
+    message += "\n\n📆 " + event[2] + "\n📚 " + event[0] + "\n🏫 " + event[1] + "\n🎓 " + teacher + "\n🕓 " + event[3]
 
   return message
 
@@ -76,6 +83,7 @@ def extractData(response) :
     newEvent.append(event['title'])
     newEvent.append(event['start'])
     newEvent.append(event['end'])
+    newEvent.append(event['id'])
 
     allEvents.append(newEvent)
 

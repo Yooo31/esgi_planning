@@ -1,7 +1,63 @@
 from datetime import date, timedelta
 import time
+import re
 import requests
 import json
+
+
+def requestCourse(courseId) :
+  session = getSession()
+  url = "https://myges.fr/student/planning-calendar"
+  headers = {
+      "cache-control": "no-cache, no-store, must-revalidate",
+      "pragma": "no-cache",
+      "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+      "accept": "application/xml, text/xml, */*; q=0.01",
+      "accept-encoding": "gzip, deflate, br",
+      "accept-language": "fr-FR,fr;q=0.6",
+      "referer": "https://myges.fr/student/planning-calendar",
+      "origin": "https://myges.fr",
+      "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36",
+      "x-requested-with": "XMLHttpRequest",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-site": "same-origin",
+      "sec-fetch-mode": "cors",
+      "sec-gpc": "1",
+      "sec-ch-ua": '"Not_A Brand";v="99", "Brave";v="109", "Chromium";v="109"',
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "Linux",
+      "faces-request": "partial/ajax"
+  }
+
+  getCourseInfo = {
+      "javax.faces.partial.ajax":  "true",
+      "javax.faces.source":  "calendar:myschedule",
+      "javax.faces.partial.execute":  "calendar:myschedule",
+      "javax.faces.partial.render":  "dlg1",
+      "javax.faces.behavior.event":  "eventSelect",
+      "javax.faces.partial.event":  "eventSelect",
+      "calendar:myschedule_selectedEventId":  courseId,
+      "calendar":  "calendar",
+      "calendar:myschedule_view":  "agendaWeek",
+      'javax.faces.ViewState': session[0]
+  }
+
+  cookies = {
+    "JSESSIONID": session[1]
+  }
+
+  response = requests.post(url, headers=headers, data=getCourseInfo, cookies=cookies)
+
+  return response.text
+
+def getDetailedValue(courseId) :
+  request = requestCourse(courseId)
+  teacherPattern = re.compile('id="([^"]*intervenant[^"]*)">([^<]*)</span')
+  coursePattern = re.compile('id="([^"]*matiere[^"]*)">([^<]*)</span')
+  teacherMatch = teacherPattern.search(request)
+  courseMatch = coursePattern.search(request)
+
+  return [courseMatch.group(2), teacherMatch.group(2)]
 
 def getSession():
   with open('session.json') as f:
@@ -102,7 +158,7 @@ def doRequest(setOfDatesConverted, count) :
   cookies = {
     "JSESSIONID": session[1]
   }
-  print(count, session[2])
+
   if count < session[2] :
     for i in range(count, session[2]) :
       print("Back to " + str(i) + " weeks")
